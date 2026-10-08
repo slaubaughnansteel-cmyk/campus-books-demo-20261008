@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta content="width=device-width, initial-scale=1.0, viewport-fit=cover" name="viewport">
+<title>校园二手书</title>
+<style>
+:root{
+  --primary:#E93B2D;
+  --primary-dark:#C72617;
+  --primary-light:#FDEEEC;
+  --bg:#F5F6F8;
+  --card:#FFFFFF;
+  --text:#1A1A1A;
+  --text2:#666666;
+  --text3:#999999;
+  --border:#EEEEEE;
+  --amber:#BA7517;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;background:var(--bg);color:var(--text);font-size:14px;}
+button{font-family:inherit;border:none;background:none;cursor:pointer;}
+.page{display:none;}
+.page.active{display:block;}
+.hidden{display:none!important;}
+
+/* 公告条 */
+.notice{background:#FFF7E8;color:#B26B00;font-size:12px;padding:8px 16px;display:flex;align-items:center;gap:6px;}
+.notice .n-ico{flex-shrink:0;}
+
+/* 顶部搜索 */
+.searchbar{padding:10px 16px;background:#fff;display:flex;gap:10px;align-items:center;}
+.searchbar .box{flex:1;background:var(--bg);border-radius:18px;padding:9px 16px;display:flex;align-items:center;gap:8px;}
+.searchbar input{flex:1;border:none;outline:none;font-size:14px;background:transparent;}
+.home-btn{width:36px;height:36px;border-radius:50%;background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0;}
+
+/* 快捷入口 */
+.quick-grid{display:flex;gap:10px;padding:14px 16px;background:#fff;}
+.quick-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:5px;padding:12px 0;border-radius:12px;background:linear-gradient(160deg,#FFF3F1,#FDE7E4);}
+.quick-item .qi{font-size:24px;line-height:1;}
+.quick-item .qt{font-size:13px;font-weight:500;color:var(--primary-dark);}
+.quick-item .qs{font-size:10px;color:var(--text3);}
+
+/* 分类横滑 */
+.cats{display:flex;gap:8px;padding:10px 16px 12px;overflow-x:auto;background:#fff;}
+.cats::-webkit-scrollbar{display:none;}
+.cat{flex-shrink:0;padding:6px 14px;border-radius:15px;background:var(--bg);font-size:13px;color:var(--text2);white-space:nowrap;}
+.cat.active{background:var(--primary);color:#fff;}
+
+/* 首页三列书网格 */
+.book-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;padding:12px 12px 80px;}
+.book-card{background:var(--card);border-radius:10px;overflow:hidden;}
+.book-card .cover{width:100%;aspect-ratio:3/4;background:var(--primary-light);display:flex;align-items:center;justify-content:center;font-size:34px;position:relative;}
+.book-card .cover .tag{position:absolute;top:6px;right:6px;background:var(--primary);color:#fff;font-size:10px;padding:2px 6px;border-radius:4px;}
+.book-card .cover .tag2{position:absolute;bottom:6px;left:6px;background:rgba(255,247,232,.95);color:#B26B00;font-size:10px;padding:2px 6px;border-radius:4px;}
+.book-card .info{padding:8px;}
+.book-card .name{font-size:13px;font-weight:500;line-height:1.35;height:35px;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;}
+.book-card .prow{display:flex;align-items:center;justify-content:space-between;margin-top:6px;}
+.book-card .price{color:var(--primary);font-size:16px;font-weight:700;}
+.book-card .price .origin{color:var(--text3);font-size:10px;font-weight:400;text-decoration:line-through;margin-left:3px;}
+.add-btn{width:24px;height:24px;border-radius:50%;background:var(--primary);color:#fff;font-size:16px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+
+/* 分类页左右布局 */
+.cate-wrap{display:flex;height:calc(100vh - 200px);}
+.cate-side{width:96px;background:#fff;overflow-y:auto;flex-shrink:0;}
+.cate-side .side-item{padding:14px 8px;text-align:center;font-size:13px;color:var(--text2);border-left:3px solid transparent;}
+.cate-side .side-item.active{color:var(--primary);background:var(--bg);border-left-color:var(--primary);font-weight:500;}
+.cate-main{flex:1;overflow-y:auto;padding:10px;}
+.cate-list-item{display:flex;gap:10px;background:#fff;border-radius:10px;padding:10px;margin-bottom:8px;}
+.cate-list-item .c-cover{width:70px;height:90px;border-radius:6px;background:var(--primary-light);display:flex;align-items:center;justify-content:center;font-size:26px;flex-shrink:0;}
+.cate-list-item .c-body{flex:1;min-width:0;display:flex;flex-direction:column;}
+.cate-list-item .c-name{font-size:13px;line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+.cate-list-item .c-price{color:var(--primary);font-size:16px;font-weight:700;margin-top:auto;}
+.cate-list-item .c-cart{width:30px;height:30px;border-radius:50%;background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:center;font-size:15px;align-self:flex-end;flex-shrink:0;}
+
+/* 购物车 */
+.guarantee{display:flex;justify-content:space-around;background:#fff;padding:10px 8px;font-size:11px;color:var(--text2);}
+.guarantee span{display:flex;align-items:center;gap:3px;}
+.guarantee .g-check{color:var(--primary);}
+.cart-count{padding:12px 16px;font-size:13px;color:var(--text2);background:var(--bg);}
+.cart-count b{color:var(--primary);font-size:16px;}
+.cart-item{display:flex;gap:10px;background:#fff;padding:12px 16px;margin-bottom:8px;align-items:center;}
+.cart-item .c-cover{width:64px;height:84px;border-radius:6px;background:var(--primary-light);display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0;}
+.cart-item .c-body{flex:1;min-width:0;}
+.cart-item .c-name{font-size:13px;line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+.cart-item .c-price{color:var(--primary);font-size:16px;font-weight:700;margin-top:6px;}
+.stepper{display:flex;align-items:center;gap:10px;margin-top:6px;}
+.stepper button{width:24px;height:24px;border-radius:4px;background:var(--bg);font-size:14px;color:var(--text2);display:flex;align-items:center;justify-content:center;}
+.stepper .num{font-size:14px;min-width:20px;text-align:center;}
+.empty-state{display:flex;flex-direction:column;align-items:center;padding:60px 0;color:var(--text3);}
+.empty-state .e-ico{font-size:56px;margin-bottom:12px;}
+.cart-footer{position:fixed;bottom:50px;left:0;right:0;background:#fff;border-top:1px solid var(--border);padding:10px 16px;display:flex;align-items:center;justify-content:space-between;z-index:98;}
+.cart-footer .total{font-size:13px;color:var(--text2);}
+.cart-footer .total b{color:var(--primary);font-size:20px;}
+.cart-footer .btn{padding:10px 28px;border-radius:20px;background:var(--primary);color:#fff;font-size:14px;font-weight:500;}
+
+/* 我的 */
+.mine-head{background:linear-gradient(160deg,#F2695C,#E93B2D);padding:20px 16px 24px;color:#fff;}
+.mine-user{display:flex;align-items:center;gap:14px;margin-bottom:18px;}
+.mine-user .avatar{width:56px;height:56px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;font-size:30px;}
+.mine-user .u-name{font-size:16px;font-weight:500;}
+.mine-user .u-tip{font-size:12px;opacity:.85;margin-top:3px;}
+.mine-stats{display:flex;text-align:center;}
+.mine-stats .m-stat{flex:1;}
+.mine-stats .m-num{font-size:20px;font-weight:700;}
+.mine-stats .m-label{font-size:12px;opacity:.85;margin-top:2px;}
+.mine-card{background:#fff;border-radius:12px;margin:12px 16px;padding:14px 16px;}
+.mine-card .mc-title{font-size:15px;font-weight:600;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center;}
+.mine-card .mc-title .more{font-size:12px;color:var(--text3);font-weight:400;}
+.order-grid{display:flex;justify-content:space-around;}
+.order-grid .o-item{display:flex;flex-direction:column;align-items:center;gap:6px;font-size:12px;color:var(--text2);position:relative;}
+.order-grid .o-ico{font-size:24px;}
+.order-grid .o-badge{position:absolute;top:-6px;right:-10px;background:var(--primary);color:#fff;font-size:10px;border-radius:8px;padding:1px 5px;}
+.svc-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px 0;}
+.svc-grid .s-item{display:flex;flex-direction:column;align-items:center;gap:6px;font-size:12px;color:var(--text2);}
+.svc-grid .s-ico{font-size:24px;}
+
+/* 底部 Tab */
+.tabbar{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--border);display:flex;z-index:100;padding-bottom:env(safe-area-inset-bottom);}
+.tabbar .tab{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:7px 0;font-size:11px;color:var(--text3);position:relative;}
+.tabbar .tab.active{color:var(--primary);}
+.tabbar .tab .ico{font-size:21px;line-height:1.2;}
+.tabbar .tab .t-badge{position:absolute;top:2px;right:calc(50% - 20px);background:var(--primary);color:#fff;font-size:10px;border-radius:9px;padding:1px 5px;}
+
+/* 子页顶栏 */
+.sub-topbar{position:sticky;top:0;z-index:100;background:var(--primary);color:#fff;padding:14px 16px;display:flex;align-items:center;gap:12px;}
+.sub-topbar .back{font-size:20px;}
+.sub-topbar .tt{font-size:16px;font-weight:600;}
+
+/* 表单 */
+.main{padding:12px 16px 80px;}
+.form-group{margin-bottom:16px;}
+.form-group label{display:block;font-size:13px;color:var(--text2);margin-bottom:8px;}
+.form-group input,.form-group textarea,.form-group select{width:100%;border:1px solid var(--border);border-radius:8px;padding:11px 12px;font-size:14px;outline:none;background:#fff;}
+.form-group textarea{min-height:90px;resize:none;}
+.form-group input:focus,.form-group textarea:focus{border-color:var(--primary);}
+.cover-upload{width:100%;aspect-ratio:3/4;border:2px dashed var(--border);border-radius:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--text3);gap:8px;background:#fff;}
+.cover-upload .big{font-size:40px;}
+.btn{display:block;width:100%;padding:13px;border-radius:22px;font-size:15px;font-weight:500;text-align:center;}
+.btn-primary{background:var(--primary);color:#fff;}
+
+/* 详情页 */
+.detail-cover{width:100%;aspect-ratio:3/4;background:var(--primary-light);display:flex;align-items:center;justify-content:center;font-size:60px;}
+.detail-body{padding:16px;}
+.detail-body .name{font-size:18px;font-weight:600;line-height:1.4;}
+.detail-body .price{color:var(--primary);font-size:24px;font-weight:700;margin:10px 0;}
+.detail-body .price .origin{color:var(--text3);font-size:14px;font-weight:400;text-decoration:line-through;margin-left:6px;}
+.detail-row{display:flex;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border);font-size:14px;}
+.detail-row .k{color:var(--text3);}
+.detail-footer{position:fixed;bottom:56px;left:0;right:0;background:#fff;border-top:1px solid var(--border);padding:10px 16px;display:flex;gap:10px;z-index:99;padding-bottom:calc(10px + env(safe-area-inset-bottom));}
+.detail-footer .btn{flex:1;padding:12px;}
+.detail-footer .icon-btn{width:44px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:11px;color:var(--text3);}
+.detail-footer .icon-btn .ico{font-size:22px;}
+
+/* 聊天 */
+.chat-wrap{display:flex;flex-direction:column;height:calc(100vh - 52px);}
+.chat-body{flex:1;overflow-y:auto;padding:16px;}
+.msg{max-width:75%;margin-bottom:12px;padding:10px 14px;border-radius:12px;font-size:14px;line-height:1.5;}
+.msg.me{background:var(--primary);color:#fff;margin-left:auto;border-bottom-right-radius:4px;}
+.msg.other{background:#fff;border-bottom-left-radius:4px;}
+.chat-input{display:flex;gap:8px;padding:10px 12px;background:#fff;border-top:1px solid var(--border);}
+.chat-input input{flex:1;border:1px solid var(--border);border-radius:20px;padding:9px 14px;outline:none;font-size:14px;}
+.chat-input .send{width:36px;height:36px;border-radius:50%;background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+
+/* 弹窗 */
+.mask{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200;display:flex;align-items:flex-end;justify-content:center;}
+.sheet{width:100%;background:#fff;border-radius:16px 16px 0 0;padding:20px 16px 24px;animation:up .2s ease;}
+@keyframes up{from{transform:translateY(100%);}to{transform:translateY(0);}}
+.sheet .sh-title{font-size:16px;font-weight:600;text-align:center;margin-bottom:4px;}
+.sheet .sh-sub{font-size:12px;color:var(--text3);text-align:center;margin-bottom:16px;}
+.scan-box{width:100%;aspect-ratio:16/9;background:var(--bg);border-radius:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;color:var(--text3);margin-bottom:16px;border:1px dashed var(--border);}
+.scan-box .big{font-size:48px;}
+
+/* 列表项（通用） */
+.list-item{background:#fff;border-radius:12px;padding:14px 16px;margin-bottom:10px;display:flex;align-items:center;gap:12px;}
+.list-item .avatar{width:42px;height:42px;border-radius:50%;background:var(--primary-light);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;}
+.list-item .body{flex:1;min-width:0;}
+.list-item .body .t{font-size:14px;font-weight:500;}
+.list-item .body .s{font-size:12px;color:var(--text3);margin-top:3px;}
+</style>
+<meta name="theme-color" content="#E93B2D">
+</head>
+<body>
+
+<!-- ============ 首页 ============ -->
+<div class="page active" id="page-home">
+  <div class="notice"><span class="n-ico">📢</span>校园二手书上上线啦，教材教辅学长学姐一手货源，低价淘好书~</div>
+  <div class="searchbar">
+    <div class="box">
+      <span style="color:var(--text3)">🔍</span>
+      <input id="searchInput" oninput="filterBooks()" placeholder="搜索书名 / 作者 / ISBN" type="text">
+    </div>
+  </div>
+  <div class="quick-grid">
+    <div class="quick-item" onclick="openScan()">
+      <span class="qi">📷</span>
+      <span class="qt">扫码卖书</span>
+      <span class="qs">扫 ISBN 估价</span>
+    </div>
+    <div class="quick-item" onclick="switchTab(1)">
+      <span class="qi">📚</span>
+      <span class="qt">分类找书</span>
+      <span class="qs">按学院淘教材</span>
+    </div>
+    <div class="quick-item" onclick="goPublish()">
+      <span class="qi">➕</span>
+      <span class="qt">发布闲置</span>
+      <span class="qs">30 秒上架</span>
+    </div>
+  </div>
+  <div class="cats" id="catBar"></div>
+  <div class="book-grid" id="bookGrid"></div>
+</div>
+
+<!-- ============ 分类页 ============ -->
+<div class="page" id="page-cate">
+  <div class="sub-topbar" style="background:#fff; color:var(--text); justify-content:center">
+    <span class="tt">商品分类</span>
+  </div>
+  <div class="searchbar">
+    <div class="box">
+      <span style="color:var(--text3)">🔍</span>
+      <input id="cateSearch" oninput="renderCateList()" placeholder="搜索商品名称" type="text">
+    </div>
+  </div>
+  <div class="cats" id="collegeBar"></div>
+  <div class="cate-wrap">
+    <div class="cate-side" id="sideBar"></div>
+    <div class="cate-main" id="cateList"></div>
+  </div>
+</div>
+
+<!-- ============ 购物车页 ============ -->
+<div class="page" id="page-cart">
+  <div class="sub-topbar" style="background:#fff; color:var(--text); justify-content:center">
+    <span class="tt">购物车</span>
+  </div>
+  <div class="guarantee">
+    <span><span class="g-check">✓</span>100%正版保证</span>
+    <span><span class="g-check">✓</span>学长学姐实拍</span>
+    <span><span class="g-check">✓</span>面交有保障</span>
+  </div>
+  <div class="cart-count">购物数量 <b id="cartNum">0</b></div>
+  <div id="cartList"></div>
+  <div class="cart-footer hidden" id="cartFooter">
+    <div class="total">合计：<b id="cartTotal">¥0.00</b></div>
+    <button class="btn" onclick="checkout()">去结算</button>
+  </div>
+</div>
+
+<!-- ============ 我的 ============ -->
+<div class="page" id="page-mine">
+  <div class="sub-topbar" style="background:transparent; justify-content:center">
+    <span class="tt">个人中心</span>
+  </div>
+  <div class="mine-head" style="margin-top:-50px; padding-top:66px">
+    <div class="mine-user" onclick="alert('框架演示：微信授权登录')">
+      <div class="avatar">👤</div>
+      <div>
+        <div class="u-name">请点击授权</div>
+        <div class="u-tip">授权后可发布图书、下单购买</div>
+      </div>
+    </div>
+    <div class="mine-stats">
+      <div class="m-stat"><div class="m-num">0</div><div class="m-label">收藏</div></div>
+      <div class="m-stat"><div class="m-num">2</div><div class="m-label">优惠券</div></div>
+      <div class="m-stat"><div class="m-num">96</div><div class="m-label">信用分</div></div>
+    </div>
+  </div>
+  <div class="mine-card">
+    <div class="mc-title">订单中心 <span class="more">查看全部 ›</span></div>
+    <div class="order-grid">
+      <div class="o-item" onclick="alert('待付款订单')"><span class="o-ico">💳</span>待付款</div>
+      <div class="o-item" onclick="alert('待发货订单')"><span class="o-ico">🚚</span>待发货<span class="o-badge">1</span></div>
+      <div class="o-item" onclick="alert('待收货订单')"><span class="o-ico">📦</span>待收货</div>
+      <div class="o-item" onclick="alert('待评价订单')"><span class="o-ico">✍️</span>待评价</div>
+      <div class="o-item" onclick="alert('退款/售后')"><span class="o-ico">💸</span>退款</div>
+    </div>
+  </div>
+  <div class="mine-card">
+    <div class="mc-title">我的服务</div>
+    <div class="svc-grid">
+      <div class="s-item" onclick="goPublish()"><span class="s-ico">➕</span>我的发布</div>
+      <div class="s-item" onclick="alert('信用分 96 · 优秀\n\n已交易 12 单 · 好评率 100%\n按时履约 +5 · 买家好评 +2')"><span class="s-ico">⭐</span>我的信用</div>
+      <div class="s-item" onclick="alert('框架演示：地址信息')"><span class="s-ico">📍</span>地址信息</div>
+      <div class="s-item" onclick="alert('框架演示：我的收藏')"><span class="s-ico">💗</span>我的收藏</div>
+      <div class="s-item" onclick="alert('框架演示：优惠券（2 张）')"><span class="s-ico">🎫</span>优惠券</div>
+      <div class="s-item" onclick="alert('框架演示：浏览记录')"><span class="s-ico">👣</span>浏览记录</div>
+      <div class="s-item" onclick="alert('框架演示：余额 / 提现')"><span class="s-ico">💰</span>我的余额</div>
+      <div class="s-item" onclick="alert('框架演示：联系客服')"><span class="s-ico">🎧</span>联系客服</div>
+    </div>
+  </div>
+  <div style="height:80px"></div>
+</div>
+
+<!-- ============ 发布页 ============ -->
+<div class="page" id="page-publish">
+  <div class="sub-topbar">
+    <span class="back" onclick="showPage(lastMainPage)">‹</span>
+    <span class="tt">发布图书</span>
+  </div>
+  <div class="main" style="padding-bottom:30px">
+    <div class="form-group">
+      <label>图书封面</label>
+      <div class="cover-upload" onclick="alert('框架演示：此处接入图片上传（后期接云存储）')">
+        <span class="big">📷</span>
+        <span>点击上传封面照片</span>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>书名</label>
+      <input id="pName" placeholder="请输入书名" type="text">
+    </div>
+    <div class="form-group">
+      <label>所属学院</label>
+      <select id="pCollege">
+        <option>数学学院</option><option>外语学院</option><option>计算机学院</option>
+        <option>经管学院</option><option>文学院</option><option>草业学院</option><option>其他</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>分类</label>
+      <select id="pCat">
+        <option value="教材">教材</option><option value="教辅">教辅</option>
+        <option value="文学">文学</option><option value="考研">考研</option><option value="其他">其他</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>原价（元）</label>
+      <input id="pOrigin" placeholder="0.00" type="number">
+    </div>
+    <div class="form-group">
+      <label>售价（元）</label>
+      <input id="pPrice" placeholder="0.00" type="number">
+    </div>
+    <div class="form-group">
+      <label>成色</label>
+      <select id="pCond">
+        <option value="全新">全新</option>
+        <option value="正版二手">正版二手 · 九成新</option>
+        <option value="有笔记">有笔记 · 八成新</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>描述</label>
+      <textarea id="pDesc" placeholder="简单描述图书状态、有无笔记、交易地点等"></textarea>
+    </div>
+    <button class="btn btn-primary" onclick="publishBook()">发布</button>
+  </div>
+</div>
+
+<!-- ============ 详情页 ============ -->
+<div class="page" id="page-detail">
+  <div class="sub-topbar">
+    <span class="back" onclick="showPage(lastMainPage)">‹</span>
+    <span class="tt">图书详情</span>
+  </div>
+  <div class="detail-cover" id="detailCover">📖</div>
+  <div class="detail-body" id="detailBody"></div>
+  <div class="detail-footer">
+    <div class="icon-btn" onclick="alert('已收藏')"><span class="ico">🤍</span>收藏</div>
+    <div class="icon-btn" onclick="openChat()"><span class="ico">💬</span>咨询</div>
+    <button class="btn btn-primary" onclick="addToCart(currentBook)">加入购物车</button>
+    <button class="btn" onclick="buyBook()" style="background:#FF9500; color:#fff; flex:1">立即购买</button>
+  </div>
+</div>
+
+<!-- ============ 聊天页 ============ -->
+<div class="page" id="page-chat">
+  <div class="sub-topbar">
+    <span class="back" onclick="showPage('page-detail')">‹</span>
+    <span class="tt" id="chatTitle">咨询</span>
+  </div>
+  <div class="chat-wrap">
+    <div class="chat-body" id="chatBody"></div>
+    <div class="chat-input">
+      <input id="chatInput" onkeydown="if(event.key==='Enter')sendMsg()" placeholder="输入消息…" type="text">
+      <div class="send" onclick="sendMsg()">➤</div>
+    </div>
+  </div>
+</div>
+
+<!-- 扫码估价弹窗 -->
+<div class="mask hidden" id="scanMask" onclick="if(event.target===this)closeScan()">
+  <div class="sheet">
+    <div class="sh-title">扫码卖书</div>
+    <div class="sh-sub">对准书背面 ISBN 条码，自动识别并估价</div>
+    <div class="scan-box">
+      <span class="big">📷</span>
+      <span>框架演示：此处接入微信扫一扫能力</span>
+    </div>
+    <button class="btn btn-primary" onclick="demoScan()">模拟扫描并估价</button>
+  </div>
+</div>
+
+<!-- 底部 Tab -->
+<div class="tabbar" id="tabbar">
+  <div class="tab active" onclick="switchTab(0)"><span class="ico">🏠</span>首页</div>
+  <div class="tab" onclick="switchTab(1)"><span class="ico">📚</span>分类</div>
+  <div class="tab" onclick="switchTab(2)"><span class="ico">🛒</span>购物车<span class="t-badge hidden" id="tabCartBadge">0</span></div>
+  <div class="tab" onclick="switchTab(3)"><span class="ico">👤</span>我的</div>
+</div>
+
+<script>
+// ============ 数据 ============
+const COVERS = ['📗','📘','📕','📙','📓','📔','📒','📚','📗','📘'];
+const CATS = ['全部','教材','教辅','文学','考研','其他'];
+const COLLEGES = ['全部','数学学院','外语学院','计算机学院','经管学院','文学院','草业学院'];
+const PAGES = ['page-home','page-cate','page-cart','page-mine'];
+let books = [
+  {id:1,name:'新视野大学英语视听说教程 3（带激活码）',cat:'教材',college:'外语学院',origin:58,price:52.4,cond:'正版二手',tag:'带激活码',seller:'郑同学',views:86,cov:0},
+  {id:2,name:'新视野大学英语读写教程 3 思政智慧版',cat:'教材',college:'外语学院',origin:49,price:43.7,cond:'正版二手',tag:'带激活码',seller:'郑同学',views:64,cov:1},
+  {id:3,name:'毛泽东思想和中国特色社会主义理论体系概论',cat:'教材',college:'其他',origin:42,price:8.8,cond:'正版二手',tag:'5成新以上9新',seller:'马同学',views:120,cov:2},
+  {id:4,name:'习近平新时代中国特色社会主义思想概论',cat:'教材',college:'其他',origin:38,price:11.2,cond:'正版二手',tag:'2023年版',seller:'马同学',views:98,cov:3},
+  {id:5,name:'马克思主义基本原理（2023年版）',cat:'教材',college:'其他',origin:40,price:11.3,cond:'正版二手',tag:'即购即学',seller:'马同学',views:75,cov:4},
+  {id:6,name:'Python程序设计实验教程 / 孙健敏',cat:'教材',college:'计算机学院',origin:35,price:28,cond:'正版二手',tag:'无笔记',seller:'孙同学',views:210,cov:5},
+  {id:7,name:'Python程序设计 第二版 / 孙健敏',cat:'教材',college:'计算机学院',origin:55,price:42,cond:'正版二手',tag:'无笔记',seller:'孙同学',views:150,cov:6},
+  {id:8,name:'大学英语跨文化交际教程（第二版）',cat:'教材',college:'外语学院',origin:45,price:24.5,cond:'正版二手',tag:'即购即学',seller:'刘同学',views:88,cov:7},
+  {id:9,name:'高等数学（第七版）上册',cat:'教材',college:'数学学院',origin:49.8,price:18,cond:'正版二手',tag:'少量笔记',seller:'王同学',views:186,cov:8},
+  {id:10,name:'考研英语词汇红宝书',cat:'考研',college:'其他',origin:58,price:22,cond:'正版二手',tag:'九成新',seller:'陈同学',views:340,cov:9},
+];
+let cart = [];
+let currentCat = '全部';
+let currentCollege = '全部';
+let currentBook = null;
+let lastMainPage = 'page-home';
+
+// ============ 首页 ============
+function renderCats(){
+  document.getElementById('catBar').innerHTML = CATS.map(c=>
+    `<div class="cat ${c===currentCat?'active':''}" onclick="setCat('${c}')">${c}</div>`).join('');
+}
+function setCat(c){
+  currentCat = c;
+  renderCats();
+  filterBooks();
+}
+function filterBooks(){
+  const kw = document.getElementById('searchInput').value.trim();
+  const list = books.filter(b=>
+    (currentCat==='全部'||b.cat===currentCat) &&
+    (!kw || b.name.includes(kw) || b.seller.includes(kw)));
+  document.getElementById('bookGrid').innerHTML = list.map(b=>`
+    <div class="book-card" onclick="openDetail(${b.id})">
+      <div class="cover">${COVERS[b.cov]}<span class="tag">${b.cond}</span><span class="tag2">${b.tag}</span></div>
+      <div class="info">
+        <div class="name">${b.name}</div>
+        <div class="prow">
+          <div class="price">¥${b.price.toFixed(2).replace(/\.00$/,'')}</div>
+          <div class="add-btn" onclick="event.stopPropagation();addToCart(books.find(x=>x.id===${b.id}))">+</div>
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+// ============ 分类页 ============
+function renderColleges(){
+  document.getElementById('collegeBar').innerHTML = COLLEGES.map(c=>
+    `<div class="cat ${c===currentCollege?'active':''}" onclick="setCollege('${c}')">${c}</div>`).join('');
+}
+function setCollege(c){
+  currentCollege = c;
+  renderColleges();
+  renderSide();
+  renderCateList();
+}
+function renderSide(){
+  document.getElementById('sideBar').innerHTML = CATS.map(c=>
+    `<div class="side-item ${c===currentCat?'active':''}" onclick="setCat2('${c}')">${c}</div>`).join('');
+}
+function setCat2(c){
+  currentCat = c;
+  renderSide();
+  renderCateList();
+}
+function renderCateList(){
+  const kw = (document.getElementById('cateSearch').value||'').trim();
+  const list = books.filter(b=>
+    (currentCollege==='全部'||b.college===currentCollege) &&
+    (currentCat==='全部'||b.cat===currentCat) &&
+    (!kw || b.name.includes(kw)));
+  document.getElementById('cateList').innerHTML = list.length ? list.map(b=>`
+    <div class="cate-list-item" onclick="openDetail(${b.id})">
+      <div class="c-cover">${COVERS[b.cov]}</div>
+      <div class="c-body">
+        <div class="c-name">${b.name}</div>
+        <div style="display:flex;justify-content:space-between;align-items:flex-end;">
+          <div class="c-price">¥${b.price.toFixed(2).replace(/\.00$/,'')}</div>
+          <div class="c-cart" onclick="event.stopPropagation();addToCart(books.find(x=>x.id===${b.id}))">🛒</div>
+        </div>
+      </div>
+    </div>`).join('') : '<div class="empty-state"><span class="e-ico">📦</span>该分类暂无商品</div>';
+}
+
+// ============ 购物车 ============
+function addToCart(book){
+  if(!book) return;
+  const item = cart.find(c=>c.id===book.id);
+  if(item){ item.qty++; } else { cart.push({id:book.id,name:book.name,price:book.price,cov:book.cov,qty:1}); }
+  renderCart();
+  showToast('已加入购物车');
+}
+function changeQty(id,d){
+  const item = cart.find(c=>c.id===id);
+  if(!item) return;
+  item.qty += d;
+  if(item.qty<=0) cart = cart.filter(c=>c.id!==id);
+  renderCart();
+}
+function renderCart(){
+  const num = cart.reduce((s,c)=>s+c.qty,0);
+  const total = cart.reduce((s,c)=>s+c.qty*c.price,0);
+  document.getElementById('cartNum').textContent = num;
+  document.getElementById('cartTotal').textContent = '¥'+total.toFixed(2);
+  const badge = document.getElementById('tabCartBadge');
+  badge.textContent = num;
+  badge.classList.toggle('hidden', num===0);
+  document.getElementById('cartFooter').classList.toggle('hidden', num===0);
+  document.getElementById('cartList').innerHTML = cart.length ? cart.map(c=>`
+    <div class="cart-item">
+      <div class="c-cover">${COVERS[c.cov]}</div>
+      <div class="c-body">
+        <div class="c-name">${c.name}</div>
+        <div class="c-price">¥${c.price.toFixed(2).replace(/\.00$/,'')}</div>
+      </div>
+      <div class="stepper">
+        <button onclick="changeQty(${c.id},-1)">−</button>
+        <span class="num">${c.qty}</span>
+        <button onclick="changeQty(${c.id},1)">＋</button>
+      </div>
+    </div>`).join('') : `
+    <div class="empty-state">
+      <span class="e-ico">📦</span>
+      <span>暂无商品</span>
+      <button class="btn btn-primary" style="width:auto;padding:9px 30px;margin-top:16px;" onclick="switchTab(0)">去逛逛</button>
+    </div>`;
+}
+function checkout(){
+  alert('框架演示：结算流程\n\n正式版：生成订单 → 微信支付（需商户号）→ 卖家发货/面交 → 确认收货');
+}
+
+// ============ 详情 ============
+function openDetail(id){
+  currentBook = books.find(b=>b.id===id);
+  document.getElementById('detailCover').textContent = COVERS[currentBook.cov];
+  document.getElementById('detailBody').innerHTML = `
+    <div class="name">${currentBook.name}</div>
+    <div class="price">¥${currentBook.price}<span class="origin">¥${currentBook.origin}</span></div>
+    <div class="detail-row"><span class="k">成色</span><span>${currentBook.cond} · ${currentBook.tag}</span></div>
+    <div class="detail-row"><span class="k">所属学院</span><span>${currentBook.college}</span></div>
+    <div class="detail-row"><span class="k">卖家</span><span>${currentBook.seller}</span></div>
+    <div class="detail-row"><span class="k">卖家信用</span><span style="color:var(--primary);">96 分 ★★★★★</span></div>
+    <div class="detail-row"><span class="k">浏览量</span><span>${currentBook.views}</span></div>`;
+  showPage('page-detail');
+}
+function buyBook(){
+  addToCart(currentBook);
+  alert('已加入购物车，可直接去结算\n\n框架演示：正式版将直接拉起微信支付');
+}
+
+// ============ 聊天 ============
+function openChat(){
+  document.getElementById('chatTitle').textContent = '与 '+currentBook.seller+' 咨询';
+  document.getElementById('chatBody').innerHTML = `
+    <div class="msg other">你好，这本书还在吗？</div>
+    <div class="msg me">在的，${currentBook.cond}，基本没笔记</div>
+    <div class="msg other">好的，能便宜点吗？</div>
+    <div class="msg me">可以小刀，校内面交~</div>`;
+  showPage('page-chat');
+}
+function sendMsg(){
+  const input = document.getElementById('chatInput');
+  const v = input.value.trim();
+  if(!v) return;
+  document.getElementById('chatBody').insertAdjacentHTML('beforeend',`<div class="msg me">${v}</div>`);
+  input.value='';
+  document.getElementById('chatBody').scrollTop = 99999;
+}
+
+// ============ 发布 ============
+function goPublish(){ showPage('page-publish'); }
+function publishBook(){
+  const name = document.getElementById('pName').value.trim();
+  const price = parseFloat(document.getElementById('pPrice').value);
+  if(!name){alert('请填写书名');return;}
+  if(!price||price<=0){alert('请填写正确的售价');return;}
+  books.unshift({
+    id:Date.now(),name,
+    college:document.getElementById('pCollege').value,
+    cat:document.getElementById('pCat').value,
+    origin:parseFloat(document.getElementById('pOrigin').value)||0,
+    price,cond:document.getElementById('pCond').value,tag:'刚发布',
+    seller:'我',views:0,cov:Math.floor(Math.random()*COVERS.length)
+  });
+  alert('发布成功！（演示数据，刷新后消失）');
+  document.getElementById('pName').value='';
+  document.getElementById('pPrice').value='';
+  document.getElementById('pOrigin').value='';
+  document.getElementById('pDesc').value='';
+  showPage(lastMainPage);
+  filterBooks();
+  renderCateList();
+}
+
+// ============ 扫码 ============
+function openScan(){ document.getElementById('scanMask').classList.remove('hidden'); }
+function closeScan(){ document.getElementById('scanMask').classList.add('hidden'); }
+function demoScan(){
+  closeScan();
+  alert('扫码估价结果（演示）\n\n《高等数学（第七版）》\nISBN：9787040458180\n品相：正版二手\n参考成交价：¥18.00\n\n正式版将调用微信扫一扫 + ISBN 数据库');
+}
+
+// ============ 导航 ============
+function switchTab(idx){
+  lastMainPage = PAGES[idx];
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById(PAGES[idx]).classList.add('active');
+  document.querySelectorAll('#tabbar .tab').forEach((t,i)=>t.classList.toggle('active',i===idx));
+  window.scrollTo(0,0);
+}
+function showPage(id){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0,0);
+}
+let toastTimer = null;
+function showToast(msg){
+  let t = document.getElementById('toast');
+  if(!t){
+    t = document.createElement('div');
+    t.id='toast';
+    t.style.cssText='position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,.75);color:#fff;padding:10px 20px;border-radius:8px;font-size:14px;z-index:999;';
+    document.body.appendChild(t);
+  }
+  t.textContent = msg;
+  t.style.display='block';
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>t.style.display='none',1500);
+}
+
+// ============ 初始化 ============
+renderCats();
+renderColleges();
+renderSide();
+filterBooks();
+renderCateList();
+renderCart();
+</script>
+</body>
+</html>
